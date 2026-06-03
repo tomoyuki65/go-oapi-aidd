@@ -1,0 +1,33 @@
+version: "2"
+
+run:
+  # タイムアウト設定
+  timeout: 5m
+
+formatters:
+  # 実行するformatterを指定
+  enable:
+    - gofumpt
+    - gci
+
+  settings:
+    gofumpt:
+      # モジュールパス設定
+      module-path: go-oapi-aidd
+    gci:
+      # 並び順設定
+      custom-order: true
+      sections:
+        - standard
+        - default
+        - prefix(go-oapi-aidd)
+
+linters:
+  # デフォルト設定を全てOFF
+  default: none
+
+  # 実行するlintを指定
+  enable:
+    - govet
+    - staticcheck
+    - gosec

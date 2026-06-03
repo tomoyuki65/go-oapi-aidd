@@ -1,0 +1,45 @@
+services:
+  api:
+    container_name: go-oapi-aidd-api
+    build:
+      context: .
+      dockerfile: ./deploy/docker/local/go/Dockerfile
+    command: air -c .air.toml
+    volumes:
+      - ./src:/go/src
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    tty: true
+    stdin_open: true
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    container_name: go-oapi-aidd-db
+    build:
+      context: .
+      dockerfile: ./deploy/docker/local/db/Dockerfile
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Tokyo
+      # ローカル環境でもパスワードを有効化する設定
+      POSTGRES_INITDB_ARGS: --auth-local=scram-sha-256 --auth-host=scram-sha-256
+    volumes:
+      - go-oapi-aidd-db-data:/var/lib/postgresql
+      # 初回起動時にSQLを実行する設定
+      - ./deploy/docker/local/db/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+volumes:
+  go-oapi-aidd-db-data:
