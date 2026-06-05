@@ -61,7 +61,7 @@ func main() {
 
 	// サーバー設定
 	srv := &http.Server{
-		Addr: startPort,
+		Addr:              startPort,
 		Handler:           otelHandler,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       30 * time.Second,
