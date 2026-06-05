@@ -1,0 +1,8 @@
+package: gen
+generate:
+  models: true
+output: internal/presentation/gen/models.gen.go
+import-mapping:
+  ../../openapi.yaml: "-"
+output-options:
+  skip-prune: true

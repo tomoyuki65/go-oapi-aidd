@@ -10,7 +10,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.41.0"
 )
 
-func initTracer(ctx context.Context, exporterType string) func(context.Context) error {
+func InitTracer(ctx context.Context, exporterType string) func(context.Context) error {
 	switch exporterType {
 	case "local":
 		// 標準出力向けの Trace Exporter を作成

@@ -1,0 +1,22 @@
+get:
+  operationId: healthcheck
+  tags:
+    - Healthcheck
+  description: サービスの稼働状態を確認します。
+  responses:
+    "200":
+      description: ヘルスチェック成功
+      content:
+        application/json:
+          schema:
+            $ref: "../../openapi.yaml#/components/schemas/HealthcheckResponse"
+          example:
+            message: OK
+    "500":
+      description: 予期せぬエラーが発生
+      content:
+        application/json:
+          schema:
+            $ref: "../../openapi.yaml#/components/schemas/ErrorResponse"
+          example:
+            message: Internal Server Error
