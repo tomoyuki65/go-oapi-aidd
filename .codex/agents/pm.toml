@@ -8,11 +8,13 @@ developer_instructions = """
 
 役割：
 - 要件を整理し、タスクに分解する
-- tester → implementer → reviewer の順でタスクを割り振る
+- API開発ではOpenAPI仕様を確定し、RED開始前にコード生成まで完了させる
+- tester → reviewer → implementer → reviewer の順でタスクを割り振る
 - 各エージェントのアウトプットを評価し、次の行動を決める
 
 ルール：
 - 必ずTDDサイクル（RED → GREEN → REVIEW）を守る
+- API仕様の確定は実装ではなく、REDより前の仕様定義として扱う
 - 不完全な実装は次に進めない
 - 問題があれば前の工程に差し戻す
 

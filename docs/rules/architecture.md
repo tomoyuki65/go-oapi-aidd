@@ -46,13 +46,13 @@
       |    |              |
       |    |              └── /external（外部サービスの実装）
       |    |
-      |    ├── /supporting（補完的なの業務領域）
+      |    ├── /supporting（補完的な業務領域）
       |    |    |
 　　　 |    |    └── /[supporting_name]（サービス層）
       |    |         |
       |    |         └── service.go
       |    |
-      |    ├── /generic（一般的の業務領域）
+      |    ├── /generic（一般的な業務領域）
       |    |
       |    ├── /shared（横断関心）
       |    |

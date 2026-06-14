@@ -7,16 +7,18 @@
 
 ## 1. 開発フロー
 
-1. pmが要件を整理し、タスクとして分解する  
-2. testerが失敗するテストを書く（RED）  
-3. reviewerがテスト内容をレビューする（REDレビュー）  
-4. implementerがテストを通す（GREEN）  
-5. reviewerが実装をレビューする（GREENレビュー）  
-6. 問題があれば修正ループに戻る  
+1. pmが要件を整理し、タスクとして分解する
+2. API開発の場合はpmがOpenAPI定義を確定し、コード生成まで完了させる
+3. testerが失敗するテストを書く（RED）
+4. reviewerがテスト内容をレビューする（REDレビュー）
+5. implementerがテストを通す（GREEN）
+6. reviewerが実装をレビューする（GREENレビュー）
+7. 問題があれば修正ループに戻る
 
 ## 2. API開発時の追加フロー（重要）
 
-API開発の場合は以下を必ず先に行う：
+API開発の場合はREDテスト作成より前に以下を必ず行う。
+このフェーズはAPI仕様の確定であり、実装とは扱わない。
 
 ### ① OpenAPI定義の更新
 
@@ -46,11 +48,11 @@ make generate
 
 - RED（失敗するテスト）を先に書く
 - API仕様の抜けを検出する
-- handler / usecase の境界を明確化する
+- handler / usecase / service の境界を明確化する
 
 ### テストのモックルール
 
-- handler → usecase は必ずmock化する
+- handler → usecase / service は必ずmock化する
 - usecase → repository は必ずmock化する
 - 外部APIは必ずmock化する
 - DBはintegration test以外では使用しない
@@ -98,6 +100,6 @@ reviewerは以下を検査する：
 - `docs/rules/dependency-rules.md`
 - `docs/rules/architecture.md`
 
-それでも不明な場合は、最も軽い構造を優先する：
+それでも不明な場合は、`docs/rules/module-classification.md` の判断不能時ルールに従い、最も軽い構造を優先する：
 
-generic → supporting → core
+generic → supporting → core → shared

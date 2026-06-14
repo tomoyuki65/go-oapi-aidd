@@ -19,6 +19,8 @@ TDD（Red → Green → Refactor）を前提とする。
 対象：
 - domain
 - usecase
+- supporting service
+- genericの純粋関数・単純処理
 
 特徴：
 - DBアクセスなし
@@ -46,7 +48,7 @@ API全体の動作確認。
 
 対象：
 - HTTP API全体
-- handler → usecase → repository
+- handler → usecase / service → repository / DBアクセス処理
 
 特徴：
 - 実際のHTTPリクエストを送る
@@ -70,13 +72,14 @@ API全体の動作確認。
 ### usecaseモック（重要）
 
 - handlerテストではusecaseを必ずmock化する
+- supportingのhandlerテストではserviceを必ずmock化する
 - handlerはHTTPレイヤーのみに責務を限定する
 
 ## 4. テスト配置ルール
 
 ### unit test
 
-- domain/usecaseと同階層、または近傍に配置
+- domain/usecase/service/generic処理と同階層、または近傍に配置
   - 例：
     - `xxx_usecase_test.go`
     - `xxx_service_test.go`
@@ -93,7 +96,7 @@ API全体の動作確認。
 
 handlerテストでは以下を必須とする：
 
-- usecaseは必ずモック化する
+- usecase / serviceは必ずモック化する
 - HTTPリクエスト・レスポンスのみを検証する
 - domainロジックは一切テストしない
 
@@ -110,7 +113,7 @@ handlerテストでは以下を必須とする：
 - 業務フローの検証（repositoryはmock）
 
 ### handler
-- HTTP層の検証（usecaseはmock）
+- HTTP層の検証（usecase / serviceはmock）
 
 ### integration
 - DB含む結合検証（外部APIはmock）

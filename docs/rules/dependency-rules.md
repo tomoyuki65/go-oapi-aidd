@@ -26,10 +26,16 @@
 ### internal/shared の特性
 
 - `internal/shared` は他に依存してはいけない（完全独立）
-- `internal/shared` は外部パッケージへの依存を禁止する
+- `internal/shared` の本番コードは外部パッケージへの依存を禁止する
   - 使用可能なのはGo標準ライブラリのみ
   - 例：context / errors / fmt / time など
 - `internal/shared` は全モジュールから利用可能
+
+### テスト用コードの例外
+
+- `_test.go` と `mock_*` 配下の生成mockはテスト支援コードとして扱う
+- テスト支援コードは gomock などのテスト用外部パッケージに依存してよい
+- テスト支援コードを本番コードからimportしてはならない
 
 ## 3. モジュール間依存ルール
 
@@ -68,7 +74,7 @@
 - `internal/core` → `internal/shared`
 - `internal/supporting` → `internal/shared`
 - `internal/generic` → `internal/shared`
-- `internal/shared` → どこにも依存しない
+- `internal/shared` → どこにも依存しない（本番コード）
 
 ## 6. 設計意図
 

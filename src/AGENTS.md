@@ -3,14 +3,17 @@
 このファイルをGoの実装における「実行ルールの入口」として扱う。  
 詳細な設計ルールはすべて `docs/rules` 配下を参照すること。
 
-各種ルール定義は、以下の順でルールを優先して読み込み：
+Go実装時は、まずこのファイルを読み、実装プロセスを確認すること。
+そのうえで、判断に必要な詳細ルールを以下から参照する。
 
-1. `docs/rules/architecture.md`
-2. `docs/rules/dependency-rules.md`
+1. `docs/rules/dependency-rules.md`
+2. `docs/rules/architecture.md`
 3. `docs/rules/module-classification.md`
-4. `docs/rules/orm-bun.md`
-5. `docs/rules/oapi-codegen.md`
+4. `docs/rules/oapi-codegen.md`
+5. `docs/rules/orm-bun.md`
 6. `docs/rules/testing.md`
+
+矛盾が発生した場合は、リポジトリ直下の `AGENTS.md` の「ルール優先順位」に従うこと。
 
 ## 1. 基本原則
 
@@ -24,6 +27,7 @@
 ## 2. 実装プロセス（必須手順）
 
 新規APIの作成・既存APIの変更は必ず以下の順序で行う。
+API仕様の確定とコード生成はREDテスト作成より前に完了させる。
 
 ### 1. モジュール分類
 
