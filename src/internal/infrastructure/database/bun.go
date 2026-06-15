@@ -34,7 +34,7 @@ func NewBunDB() (*bun.DB, error) {
 	}
 
 	if dbName = os.Getenv("DB_NAME"); dbName == "" {
-		dbName = "local-db-name"
+		dbName = "local-db"
 	}
 
 	if env == "testing" {

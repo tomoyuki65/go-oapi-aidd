@@ -2,19 +2,27 @@
 
 このファイルは ORM「Bun」の利用ルールを定義する。
 
-Bunの利用可能場所と利用禁止場所を定義し、DBアクセスの責務を明確化する。
+Bun の利用可能場所・利用禁止場所・マイグレーション運用を定義し、DB アクセスの責務を明確化する。
 
 ## 1. 基本方針
 
-本プロジェクトのDBアクセスは Bun を使用する。
+本プロジェクトの DB アクセスは Bun を使用する。
 
-SQLアクセスは Bun を経由して実装すること。
+SQL アクセスは Bun を経由して実装すること。
 
-Bunの利用場所は明示的に制限される。
+Bun の利用場所は明示的に制限される。
 
-## 2. Bunの利用可能場所
+モジュール分類ごとに異なる利用ルールを適用する。
 
-Bunは以下でのみ使用できる。
+- core：Repository パターン
+- supporting：Transaction Script
+- generic：Active Record
+
+詳細なモジュール分類は `module-classification.md` を参照すること。
+
+## 2. Bun の利用可能場所
+
+Bun は以下でのみ使用できる。
 
 - `internal/core/*/infrastructure/repository`
 - `internal/supporting`
@@ -22,7 +30,7 @@ Bunは以下でのみ使用できる。
 - `internal/infrastructure/database`
 - `internal/di`
 
-## 3. Bunの利用禁止場所
+## 3. Bun の利用禁止場所
 
 以下では Bun を使用してはならない。
 
@@ -32,41 +40,44 @@ Bunは以下でのみ使用できる。
 - `internal/shared`
 - `internal/presentation`
 
-## 4. coreでの利用ルール
+## 4. core での利用ルール
 
-coreはDDD構造を採用する。
+core は DDD ベースの構造を採用する。
 
 ### domain
 
-domainは業務ルールのみを扱う。
+domain は業務ルールのみを扱う。
 
 禁止事項：
 
-- Bunの利用
-- SQLの記述
-- Bunのタグ利用
-- Bunの型への依存
+- Bun の利用
+- SQL の記述
+- Bun のタグ利用
+- Bun の型への依存
+- DB アクセス
 
 ### usecase
 
-usecaseは業務フローのみを扱う。
+usecase は業務フローのみを扱う。
 
 禁止事項：
 
-- Bunの利用
-- SQLの記述
-- DBへの直接アクセス
+- Bun の利用
+- SQL の記述
+- DB への直接アクセス
 
 ### infrastructure/repository
 
-DBアクセスは repository が担当する。
+DB アクセスは repository が担当する。
 
-Bunは repository 実装内で利用する。
+Bun は repository 実装内で利用する。
 
 対象：
 
 - command（書き込み）
 - query（読み取り）
+
+Repository は domain に定義されたインターフェースを実装する。
 
 ### infrastructure/external
 
@@ -74,61 +85,81 @@ Bunは repository 実装内で利用する。
 
 禁止事項：
 
-- Bunの利用
-- DBアクセス
+- Bun の利用
+- DB アクセス
 
-## 5. supportingでの利用ルール
+---
 
-supportingは transaction script を採用する。
+## 5. supporting での利用ルール
 
-DBアクセスが必要な場合は service.go で Bun を利用してよい。
+supporting は Transaction Script を採用する。
+
+DB アクセスが必要な場合は `service.go` で Bun を利用してよい。
 
 ただし以下を守ること。
 
-- 業務処理とDB処理を過度に混在させない
-- 不要な複雑SQLを記述しない
 - 単一業務フローとして完結させる
+- 業務処理と DB 処理を過度に混在させない
+- 不要に複雑な SQL を記述しない
+- ドメインモデルを導入しない
 
-## 6. genericでの利用ルール
+## 6. generic での利用ルール
 
-genericは Active Record を採用する。
+generic は Active Record を採用する。
 
-単純CRUDについては Bun を直接利用してよい。
+単純 CRUD については Bun を直接利用してよい。
 
 対象：
 
-- 作成（Create）
-- 取得（Read）
-- 更新（Update）
-- 削除（Delete）
+- Create
+- Read
+- Update
+- Delete
 
 禁止事項：
 
 - 複雑な業務ルールの実装
 - ドメインロジックの実装
-- トランザクション整合性を伴う業務処理
+- 複数ステップの整合性制御
+- 長大なトランザクション処理
+
+generic は技術的処理のみを扱う。
 
 ## 7. スキーマ定義
 
-Bun用のスキーマ定義は以下に配置する。
+Bun用のスキーマ定義は `internal/infrastructure/database/schema` 配下に配置する。
 
-- `internal/infrastructure/database/schema`
+責務：
 
-スキーマ定義はDBマッピングの責務のみを持つ。
+- テーブル定義とのマッピング
+- Bun タグの定義
 
-業務ロジックを含めてはならない。
+禁止事項：
+
+- 業務ロジックの実装
+- バリデーションの実装
+- ドメインモデルとの兼用
+
+スキーマ定義は永続化専用モデルとして扱う。
 
 ## 8. 接続定義
 
-Bunの接続設定は以下に配置する。
+Bunの接続設定は `internal/infrastructure/database/bun.go` を利用する。
 
-- `internal/infrastructure/database/bun.go`
+責務：
 
-接続生成・設定のみを担当する。
+- DB 接続生成
+- 接続設定
+- Bun 初期化
 
-## 9. DIコンテナ
+禁止事項：
 
-DIコンテナは Bun を利用してよい。
+- 業務ロジックの実装
+- Repository の生成
+
+## 9. DI コンテナ
+
+DI コンテナは Bun を利用してよい。
 
 配置：
 
@@ -136,41 +167,144 @@ DIコンテナは Bun を利用してよい。
 
 責務：
 
-- Bun接続の注入
-- Repositoryの生成
-- Serviceの生成
-- Handlerの生成
+- Bun 接続の注入
+- Repository の生成
+- Service の生成
+- Handler の生成
 - 依存関係の組み立て
 
-DIコンテナに業務ロジックを書いてはならない。
+禁止事項：
 
-## 10. 禁止事項
+- 業務ロジックの実装
+- SQL の記述
+
+## 10. マイグレーション
+
+マイグレーション関連ファイルは `internal/infrastructure/migration` 配下に配置する。
+
+マイグレーションは必ず Bun のマイグレーション機能を利用する。
+
+### ファイル作成ルール
+
+マイグレーションファイルは手動作成してはならない。
+
+必ず以下のコマンドを実行する。
+
+```bash
+docker compose exec api go run cmd/migrate/main.go create_sql [ファイル名]
+```
+
+例：
+
+```bash
+docker compose exec api go run cmd/migrate/main.go create_sql create_users_table
+```
+
+実行すると以下のような2つのファイルが生成される。
+
+```text
+src/internal/infrastructure/migration/migrations/20260119023405_create_users_table.up.sql
+src/internal/infrastructure/migration/migrations/20260119023405_create_users_table.down.sql
+```
+
+- `*.up.sql`：マイグレーション実行用
+- `*.down.sql`：ロールバック用
+
+### 命名規則
+
+ファイル名は以下の形式とする。
+
+```text
+[操作]_[対象]
+```
+
+例：
+
+- `create_users_table`
+- `add_index_to_orders`
+- `drop_legacy_columns`
+
+タイムスタンプは自動付与されるため手動指定しない。
+
+### 初期化
+
+マイグレーション管理テーブルを作成する場合は以下を実行する。
+
+```bash
+docker compose exec api go run cmd/migrate/main.go init
+```
+
+テスト用 DB に対して実行する場合：
+
+```bash
+docker compose exec api env ENV=testing go run cmd/migrate/main.go init
+```
+
+### 状態確認
+
+現在のマイグレーション状態を確認する場合は以下を実行する。
+
+```bash
+docker compose exec api go run cmd/migrate/main.go status
+```
+
+### マイグレーション実行
+
+マイグレーションを適用する場合は以下を実行する。
+
+```bash
+docker compose exec api go run cmd/migrate/main.go migrate
+```
+
+一度に実行された SQL は同一グループとして管理される。
+
+### ロールバック
+
+直前のマイグレーショングループをロールバックする場合は以下を実行する。
+
+```bash
+docker compose exec api go run cmd/migrate/main.go rollback
+```
+
+ロールバックはファイル単位ではなくグループ単位で実行される。
+
+### マイグレーション作成ルール
+
+- `up.sql` と `down.sql` は必ず対で作成する
+- `down.sql` を省略してはならない
+- 既存の適用済みマイグレーションを書き換えてはならない
+- 過去のマイグレーションを削除してはならない
+- スキーマ変更は新規マイグレーションとして追加する
+
+## 11. 禁止事項
 
 以下を禁止する。
 
-- domainで Bun を使用すること
-- domainで SQL を記述すること
-- usecaseで Bun を使用すること
-- usecaseで SQL を記述すること
-- presentationで Bun を使用すること
-- sharedで Bun を使用すること
-- DIコンテナに業務ロジックを書くこと
-- Bunのスキーマを業務モデルとして扱うこと
+- domain で Bun を使用すること
+- domain で SQL を記述すること
+- usecase で Bun を使用すること
+- usecase で SQL を記述すること
+- presentation で Bun を使用すること
+- shared で Bun を使用すること
+- DI コンテナに業務ロジックを書くこと
+- Bun のスキーマを業務モデルとして扱うこと
+- マイグレーションファイルを手動作成すること
+- 適用済みマイグレーションを書き換えること
 
-## 11. 判断基準
+## 12. 判断基準
 
-DBアクセスが必要な場合は以下で判断する。
+DB アクセスが必要な場合は以下で判断する。
 
 ### core
 
-- repository に実装する
+Repository に実装する。
 
 ### supporting
 
-- service.go に実装する
+`service.go` に実装する。
 
 ### generic
 
-- Active Record として実装する
+Active Record として実装する。
 
 判断に迷った場合は `module-classification.md` を参照し、対象機能の分類を先に決定すること。
