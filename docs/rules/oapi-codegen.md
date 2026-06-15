@@ -1,4 +1,4 @@
-# oapi-codegenルール定義
+# oapi-codegenに関するルール定義
 
 このファイルはOpenAPI定義およびoapi-codegenに関するルールを定義する。
 

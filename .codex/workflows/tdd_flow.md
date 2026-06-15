@@ -1,7 +1,6 @@
 # TDD開発フロー
 
-本フローは pm の指示を起点として進行するが、
-各エージェントは自身の責務に従い独立して実行する。
+本フローは pm の指示を起点として進行するが、各エージェントは自身の責務に従い独立して実行する。
 
 本プロジェクトは「OpenAPI駆動 + TDD（Red → Green → Refactor）」を前提とする。
 
@@ -68,12 +67,14 @@ make generate
 reviewerは以下を検査する：
 
 ### REDレビュー
+
 - テストの妥当性
 - 仕様の過不足
 - モックの適切性
 - API設計の整合性
 
 ### GREENレビュー
+
 - 依存ルール違反
 - レイヤー逸脱
 - 実装の妥当性
@@ -94,12 +95,12 @@ reviewerは以下を検査する：
 
 ## 7. 判断ルール
 
-判断に迷った場合は以下を参照する：
+判断に迷った場合は `docs/rules` にある以下に関するドキュメントを参照する：
 
-- `docs/rules/module-classification.md`
-- `docs/rules/dependency-rules.md`
-- `docs/rules/architecture.md`
+- アーキテクチャ設計のルール定義
+- モジュール分類のルール定義
+- 依存関係のルール定義
 
-それでも不明な場合は、`docs/rules/module-classification.md` の判断不能時ルールに従い、最も軽い構造を優先する：
+それでも不明な場合は、モジュール分類のルール定義の判断不能時ルールに従い、最も軽い構造を優先する：
 
 generic → supporting → core → shared
