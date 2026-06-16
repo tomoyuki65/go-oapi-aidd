@@ -1,6 +1,6 @@
 # Go言語によるAI駆動開発のサンプル
   
-Go言語（Golang）のoapi-codegen（chi）とBunを利用し、
+Go言語（Golang）のoapi-codegen（chi）とORM「Bun」を利用し、
 AI駆動開発でDDDベースのAPIを開発する方法についてのサンプルです。
   
 <br/>
@@ -17,6 +17,7 @@ AI駆動開発でDDDベースのAPIを開発する方法についてのサンプ
 - go.uber.org/mock/mockgen: v0.6.0
 - oapi-codegen: v2.7.0
   - chi: v5.0.3
+- bun: v1.2.18
 - PostgreSQL: 18.3
 
 ### 開発ツール

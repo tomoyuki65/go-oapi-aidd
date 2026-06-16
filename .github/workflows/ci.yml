@@ -28,7 +28,7 @@ jobs:
               - 'src/go.mod'
               - 'src/go.sum'
 
-  # 静的コード解析・脆弱性チェック
+  # 静的コード解析
   lint:
     needs: changes
     if: needs.changes.outputs.app == 'true'
@@ -44,7 +44,7 @@ jobs:
       - name: Dockerコンテナのビルド
         run: docker compose build
 
-      # 静的コード解析
+      # lintの実行
       - name: lint
         run: docker compose run --rm api golangci-lint run -v ./...
 
