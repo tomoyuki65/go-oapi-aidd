@@ -68,7 +68,7 @@ jobs:
         run: docker compose up -d
 
       - name: DB接続待機処理
-        run: docker compose exec app bash -c "until pg_isready -h db -U ${DB_USER}; do sleep 1; done"
+        run: docker compose exec api bash -c "until pg_isready -h db -U ${DB_USER}; do sleep 1; done"
 
       - name: マイグレーションの初期化
         run: docker compose exec api go run cmd/migrate/main.go init
