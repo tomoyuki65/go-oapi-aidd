@@ -1,0 +1,14 @@
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      run: docker compose run --rm api golangci-lint fmt -v ./...
+    lint:
+      run: docker compose run --rm api golangci-lint run -v ./...
+
+pre-push:
+  commands:
+    test:
+      run: |
+        docker compose up -d
+        make test
