@@ -5,7 +5,8 @@ RUN apk update && \
     apk upgrade && \
     # パッケージのインストール（--no-cacheでキャッシュ削除）
     apk add --no-cache \
-            curl
+            curl \
+            postgresql-client
 
 WORKDIR /go/src
 
