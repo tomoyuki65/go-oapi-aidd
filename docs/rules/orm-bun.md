@@ -203,8 +203,8 @@ docker compose exec api go run cmd/migrate/main.go create_sql create_users_table
 実行すると以下のような2つのファイルが生成される。
 
 ```text
-src/internal/infrastructure/migration/migrations/20260119023405_create_users_table.up.sql
-src/internal/infrastructure/migration/migrations/20260119023405_create_users_table.down.sql
+internal/infrastructure/migrations/20260119023405_create_users_table.up.sql
+internal/infrastructure/migrations/20260119023405_create_users_table.down.sql
 ```
 
 - `*.up.sql`：マイグレーション実行用
