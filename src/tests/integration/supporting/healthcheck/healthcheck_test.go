@@ -42,5 +42,4 @@ func TestHealthcheck_OK(t *testing.T) {
 	// 検証
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.JSONEq(t, `{"message":"OK"}`, res.Body.String())
-	// ciテスト
 }
