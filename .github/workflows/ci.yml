@@ -81,5 +81,13 @@ jobs:
             echo "No migrations found. Skip."
           fi
 
+      - name: マスタデータの登録
+        run: |
+          if ls src/internal/infrastructure/database/seed/local/*.go >/dev/null 2>&1; then
+            docker compose exec api go run cmd/seed/main.go
+          else
+            echo "No seeds found. Skip."
+          fi
+
       - name: テストの実行
         run: make test
