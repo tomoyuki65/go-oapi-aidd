@@ -14,7 +14,11 @@
  |
  └── /src
       |
-      ├── /cmd/migrate/main.go（DBのマイグレーション用スクリプト）
+      ├── /cmd
+      |    |
+      |    ├── /migrate/main.go（DBのマイグレーション用スクリプト）
+      |    |
+      |    └── /seed/main.go（マスタデータ登録用スクリプト）
       |
       ├── /internal
       |    |
@@ -46,13 +50,13 @@
       |    |              |
       |    |              └── /external（外部サービスの実装）
       |    |
-      |    ├── /supporting（補完的な業務領域）
+      |    ├── /supporting（補完的なの業務領域）
       |    |    |
 　　　 |    |    └── /[supporting_name]（サービス層）
       |    |         |
       |    |         └── service.go
       |    |
-      |    ├── /generic（一般的な業務領域）
+      |    ├── /generic（一般的の業務領域）
       |    |
       |    ├── /shared（横断関心）
       |    |
@@ -65,6 +69,8 @@
       |    |    ├── /database（データベース設定）
       |    |    |    |
       |    |    |    ├── /schema（Bun用のスキーマ定義）
+      |    |    |    |
+      |    |    |    ├── /seed（マスタデータ登録用のseed定義）
       |    |    |    |
       |    |    |    └── bun.go （ORM「Bun」の接続定義）
       |    |    |
