@@ -16,7 +16,7 @@ import (
 func TestCalculatePointUsecase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	repository := mockRepository.NewMockMemberRepository(ctrl)
+	repository := mockRepository.NewMockMemberQueryRepository(ctrl)
 
 	t.Run("会員取得成功時に正しい計算結果を返すこと", func(t *testing.T) {
 		rank, err := domain.NewRank("silver")

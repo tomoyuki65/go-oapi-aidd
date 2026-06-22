@@ -10,15 +10,15 @@ import (
 
 // DIコンテナの定義
 type Container struct {
-	DB                 *bun.DB
-	Logger             sl.Logger
-	HealthcheckService healthcheck.Service
-	MemberRepository   memberDomain.MemberRepository
+	DB                    *bun.DB
+	Logger                sl.Logger
+	HealthcheckService    healthcheck.Service
+	MemberQueryRepository memberDomain.MemberQueryRepository
 }
 
 // 依存関係の定義
 type Dependencies struct {
-	MemberRepository memberDomain.MemberRepository
+	MemberQueryRepository memberDomain.MemberQueryRepository
 }
 
 // 依存関係の上書き用関数のコンテナオプション定義
@@ -32,16 +32,16 @@ func NewDefaultDependencies() Dependencies {
 // 依存関係からDIコンテナの作成関数
 func NewContainerFromDependencies(db *bun.DB, logger sl.Logger, deps Dependencies) *Container {
 	return &Container{
-		DB:                 db,
-		Logger:             logger,
-		HealthcheckService: healthcheck.NewService(db, logger),
-		MemberRepository:   deps.MemberRepository,
+		DB:                    db,
+		Logger:                logger,
+		HealthcheckService:    healthcheck.NewService(db, logger),
+		MemberQueryRepository: deps.MemberQueryRepository,
 	}
 }
 
-func WithMemberRepository(repository memberDomain.MemberRepository) ContainerOption {
+func WithMemberQueryRepository(repository memberDomain.MemberQueryRepository) ContainerOption {
 	return func(deps *Dependencies) {
-		deps.MemberRepository = repository
+		deps.MemberQueryRepository = repository
 	}
 }
 

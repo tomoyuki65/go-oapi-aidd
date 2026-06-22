@@ -6,6 +6,6 @@ import (
 	"github.com/uptrace/bun"
 )
 
-type MemberRepository interface {
+type MemberQueryRepository interface {
 	FindByID(ctx context.Context, db bun.IDB, id string) (*Member, error)
 }

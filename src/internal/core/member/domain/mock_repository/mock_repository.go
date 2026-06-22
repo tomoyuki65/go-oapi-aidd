@@ -18,32 +18,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockMemberRepository is a mock of MemberRepository interface.
-type MockMemberRepository struct {
+// MockMemberQueryRepository is a mock of MemberQueryRepository interface.
+type MockMemberQueryRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockMemberRepositoryMockRecorder
+	recorder *MockMemberQueryRepositoryMockRecorder
 	isgomock struct{}
 }
 
-// MockMemberRepositoryMockRecorder is the mock recorder for MockMemberRepository.
-type MockMemberRepositoryMockRecorder struct {
-	mock *MockMemberRepository
+// MockMemberQueryRepositoryMockRecorder is the mock recorder for MockMemberQueryRepository.
+type MockMemberQueryRepositoryMockRecorder struct {
+	mock *MockMemberQueryRepository
 }
 
-// NewMockMemberRepository creates a new mock instance.
-func NewMockMemberRepository(ctrl *gomock.Controller) *MockMemberRepository {
-	mock := &MockMemberRepository{ctrl: ctrl}
-	mock.recorder = &MockMemberRepositoryMockRecorder{mock}
+// NewMockMemberQueryRepository creates a new mock instance.
+func NewMockMemberQueryRepository(ctrl *gomock.Controller) *MockMemberQueryRepository {
+	mock := &MockMemberQueryRepository{ctrl: ctrl}
+	mock.recorder = &MockMemberQueryRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockMemberRepository) EXPECT() *MockMemberRepositoryMockRecorder {
+func (m *MockMemberQueryRepository) EXPECT() *MockMemberQueryRepositoryMockRecorder {
 	return m.recorder
 }
 
 // FindByID mocks base method.
-func (m *MockMemberRepository) FindByID(ctx context.Context, db bun.IDB, id string) (*domain.Member, error) {
+func (m *MockMemberQueryRepository) FindByID(ctx context.Context, db bun.IDB, id string) (*domain.Member, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByID", ctx, db, id)
 	ret0, _ := ret[0].(*domain.Member)
@@ -52,7 +52,7 @@ func (m *MockMemberRepository) FindByID(ctx context.Context, db bun.IDB, id stri
 }
 
 // FindByID indicates an expected call of FindByID.
-func (mr *MockMemberRepositoryMockRecorder) FindByID(ctx, db, id any) *gomock.Call {
+func (mr *MockMemberQueryRepositoryMockRecorder) FindByID(ctx, db, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockMemberRepository)(nil).FindByID), ctx, db, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockMemberQueryRepository)(nil).FindByID), ctx, db, id)
 }
