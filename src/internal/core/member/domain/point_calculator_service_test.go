@@ -27,10 +27,12 @@ func TestPointCalculator_Calculate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			rank, err := NewRank(tt.rank)
 			assert.NoError(t, err)
+			member, err := NewMember("11111111-1111-1111-1111-111111111111", "田中", rank)
+			assert.NoError(t, err)
 			amount, err := NewPurchaseAmount(tt.purchaseAmount)
 			assert.NoError(t, err)
 
-			point, err := NewPointCalculator().Calculate(rank, amount)
+			point, err := NewPointCalculator().Calculate(member, amount)
 
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, point.Value())
@@ -38,10 +40,15 @@ func TestPointCalculator_Calculate(t *testing.T) {
 	}
 
 	t.Run("未知rankでエラーになること", func(t *testing.T) {
+		member := &Member{
+			id:   "11111111-1111-1111-1111-111111111111",
+			name: "田中",
+			rank: Rank("platinum"),
+		}
 		amount, err := NewPurchaseAmount(5000)
 		assert.NoError(t, err)
 
-		_, err = NewPointCalculator().Calculate(Rank("platinum"), amount)
+		_, err = NewPointCalculator().Calculate(member, amount)
 
 		assert.Error(t, err)
 	})

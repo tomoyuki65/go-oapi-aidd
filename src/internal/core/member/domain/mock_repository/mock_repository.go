@@ -12,6 +12,7 @@ package mock_domain
 import (
 	context "context"
 	domain "go-oapi-aidd/internal/core/member/domain"
+	database "go-oapi-aidd/internal/shared/database"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -42,16 +43,16 @@ func (m *MockMemberRepository) EXPECT() *MockMemberRepositoryMockRecorder {
 }
 
 // FindByID mocks base method.
-func (m *MockMemberRepository) FindByID(ctx context.Context, id string) (*domain.Member, error) {
+func (m *MockMemberRepository) FindByID(ctx context.Context, tx database.Transaction, id string) (*domain.Member, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByID", ctx, id)
+	ret := m.ctrl.Call(m, "FindByID", ctx, tx, id)
 	ret0, _ := ret[0].(*domain.Member)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindByID indicates an expected call of FindByID.
-func (mr *MockMemberRepositoryMockRecorder) FindByID(ctx, id any) *gomock.Call {
+func (mr *MockMemberRepositoryMockRecorder) FindByID(ctx, tx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockMemberRepository)(nil).FindByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockMemberRepository)(nil).FindByID), ctx, tx, id)
 }
