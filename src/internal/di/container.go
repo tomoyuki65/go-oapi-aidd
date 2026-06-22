@@ -3,7 +3,7 @@ package di
 import (
 	"github.com/uptrace/bun"
 
-	"go-oapi-aidd/internal/core/member/domain"
+	memberDomain "go-oapi-aidd/internal/core/member/domain"
 	sl "go-oapi-aidd/internal/shared/logger"
 	"go-oapi-aidd/internal/supporting/healthcheck"
 )
@@ -13,12 +13,12 @@ type Container struct {
 	DB                 *bun.DB
 	Logger             sl.Logger
 	HealthcheckService healthcheck.Service
-	MemberRepository   domain.MemberRepository
+	MemberRepository   memberDomain.MemberRepository
 }
 
 // 依存関係の定義
 type Dependencies struct {
-	MemberRepository domain.MemberRepository
+	MemberRepository memberDomain.MemberRepository
 }
 
 // 依存関係の上書き用関数のコンテナオプション定義
@@ -39,7 +39,7 @@ func NewContainerFromDependencies(db *bun.DB, logger sl.Logger, deps Dependencie
 	}
 }
 
-func WithMemberRepository(repository domain.MemberRepository) ContainerOption {
+func WithMemberRepository(repository memberDomain.MemberRepository) ContainerOption {
 	return func(deps *Dependencies) {
 		deps.MemberRepository = repository
 	}

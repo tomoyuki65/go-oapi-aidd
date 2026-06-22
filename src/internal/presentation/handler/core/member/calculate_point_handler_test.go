@@ -4,12 +4,15 @@ package member
 
 import (
 	"bytes"
-	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
+	nethttpMiddleware "github.com/oapi-codegen/nethttp-middleware"
 	openapiTypes "github.com/oapi-codegen/runtime/types"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -19,28 +22,42 @@ import (
 	"go-oapi-aidd/internal/presentation/gen"
 )
 
-type strictServer struct {
+type testServer struct {
+	gen.Unimplemented
+
 	handler *CalculatePointHandler
 }
 
-func (s strictServer) Healthcheck(
-	ctx context.Context,
-	request gen.HealthcheckRequestObject,
-) (gen.HealthcheckResponseObject, error) {
-	return gen.Healthcheck500JSONResponse{Message: "not implemented"}, nil
-}
+func (s testServer) CalculateMemberPoint(w http.ResponseWriter, r *http.Request, memberID openapiTypes.UUID) {
+	var body gen.CalculateMemberPointJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-func (s strictServer) CalculateMemberPoint(
-	ctx context.Context,
-	request gen.CalculateMemberPointRequestObject,
-) (gen.CalculateMemberPointResponseObject, error) {
-	return s.handler.CalculateMemberPoint(ctx, request)
+	response, err := s.handler.CalculateMemberPoint(r.Context(), gen.CalculateMemberPointRequestObject{
+		MemberId: memberID,
+		Body:     &body,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := response.VisitCalculateMemberPointResponse(w); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func newTestHandler(usecase usecase.CalculatePointUsecase) http.Handler {
 	handler := NewCalculatePointHandler(usecase)
 	r := chi.NewRouter()
-	gen.HandlerFromMux(gen.NewStrictHandler(strictServer{handler: handler}, nil), r)
+	swagger, err := gen.GetSwagger()
+	if err != nil {
+		panic(fmt.Sprintf("failed to get swagger: %s", err.Error()))
+	}
+	swagger.Servers = openapi3.Servers{&openapi3.Server{URL: ""}}
+	r.Use(nethttpMiddleware.OapiRequestValidator(swagger))
+	gen.HandlerFromMux(testServer{handler: handler}, r)
 	return r
 }
 

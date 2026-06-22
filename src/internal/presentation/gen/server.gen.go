@@ -275,7 +275,7 @@ func (response CalculateMemberPoint200JSONResponse) VisitCalculateMemberPointRes
 	return err
 }
 
-type CalculateMemberPoint400JSONResponse MemberErrorResponse
+type CalculateMemberPoint400JSONResponse ErrorAddCodeResponse
 
 func (response CalculateMemberPoint400JSONResponse) VisitCalculateMemberPointResponse(w http.ResponseWriter) error {
 
@@ -289,7 +289,7 @@ func (response CalculateMemberPoint400JSONResponse) VisitCalculateMemberPointRes
 	return err
 }
 
-type CalculateMemberPoint404JSONResponse MemberErrorResponse
+type CalculateMemberPoint404JSONResponse ErrorAddCodeResponse
 
 func (response CalculateMemberPoint404JSONResponse) VisitCalculateMemberPointResponse(w http.ResponseWriter) error {
 
@@ -303,7 +303,7 @@ func (response CalculateMemberPoint404JSONResponse) VisitCalculateMemberPointRes
 	return err
 }
 
-type CalculateMemberPoint500JSONResponse MemberErrorResponse
+type CalculateMemberPoint500JSONResponse ErrorAddCodeResponse
 
 func (response CalculateMemberPoint500JSONResponse) VisitCalculateMemberPointResponse(w http.ResponseWriter) error {
 

@@ -26,11 +26,15 @@ func TestMemberPointCalculation(t *testing.T) {
 	require.NoError(t, err)
 
 	memberSeeder := local.NewMemberSeeder()
+	seeded := false
 	t.Cleanup(func() {
-		_ = seed.Cleanup(ctx, db, memberSeeder)
+		if seeded {
+			_ = seed.Cleanup(ctx, db, memberSeeder)
+		}
 		db.Close()
 	})
 	require.NoError(t, seed.Run(ctx, db, memberSeeder))
+	seeded = true
 
 	container := di.NewContainer(db, logger.NewSlogLogger())
 	r := router.NewRouter(container)
@@ -55,25 +59,5 @@ func TestMemberPointCalculation(t *testing.T) {
 
 		assert.Equal(t, http.StatusNotFound, res.Code)
 		assert.JSONEq(t, `{"code":"MEMBER_NOT_FOUND","message":"member not found"}`, res.Body.String())
-	})
-
-	t.Run("不正なUUIDへのHTTPリクエストで400を返すこと", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/not-a-uuid/point-calculations", bytes.NewBufferString(`{"purchaseAmount":5000}`))
-		req.Header.Set("Content-Type", "application/json")
-		res := httptest.NewRecorder()
-
-		r.ServeHTTP(res, req)
-
-		assert.Equal(t, http.StatusBadRequest, res.Code)
-	})
-
-	t.Run("範囲外の購入金額へのHTTPリクエストで400を返すこと", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+local.TanakaMemberID+"/point-calculations", bytes.NewBufferString(`{"purchaseAmount":1000000000}`))
-		req.Header.Set("Content-Type", "application/json")
-		res := httptest.NewRecorder()
-
-		r.ServeHTTP(res, req)
-
-		assert.Equal(t, http.StatusBadRequest, res.Code)
 	})
 }

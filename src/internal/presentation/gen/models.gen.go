@@ -25,6 +25,15 @@ type CalculateMemberPointResponse struct {
 	PurchaseAmount int `json:"purchaseAmount"`
 }
 
+// ErrorAddCodeResponse defines model for ErrorAddCodeResponse.
+type ErrorAddCodeResponse struct {
+	// Code エラーコード
+	Code string `json:"code"`
+
+	// Message エラーメッセージ
+	Message string `json:"message"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Message string `json:"message"`
@@ -32,15 +41,6 @@ type ErrorResponse struct {
 
 // HealthcheckResponse defines model for HealthcheckResponse.
 type HealthcheckResponse struct {
-	Message string `json:"message"`
-}
-
-// MemberErrorResponse defines model for MemberErrorResponse.
-type MemberErrorResponse struct {
-	// Code エラーコード
-	Code string `json:"code"`
-
-	// Message エラーメッセージ
 	Message string `json:"message"`
 }
 

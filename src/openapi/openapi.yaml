@@ -29,5 +29,5 @@ components:
       $ref: "./components/schemas/core/member/calculate_point_request.yaml"
     CalculateMemberPointResponse:
       $ref: "./components/schemas/core/member/calculate_point_response.yaml"
-    MemberErrorResponse:
+    ErrorAddCodeResponse:
       $ref: "./components/schemas/common/error_response.yaml"
