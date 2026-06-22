@@ -1,0 +1,9 @@
+type: object
+required:
+  - purchaseAmount
+properties:
+  purchaseAmount:
+    type: integer
+    minimum: 0
+    maximum: 999999999
+    description: 購入金額

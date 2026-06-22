@@ -27,3 +27,13 @@ func (h *HandlerV1) Healthcheck(
 	healthcheckHandler := healthcheck.NewHealthcheckHandler(h.container, h.container.HealthcheckService)
 	return healthcheckHandler.Healthcheck(ctx, request)
 }
+
+func (h *HandlerV1) CalculateMemberPoint(
+	ctx context.Context,
+	request gen.CalculateMemberPointRequestObject,
+) (gen.CalculateMemberPointResponseObject, error) {
+	return gen.CalculateMemberPoint500JSONResponse{
+		Code:    "INTERNAL_SERVER_ERROR",
+		Message: "not implemented",
+	}, nil
+}

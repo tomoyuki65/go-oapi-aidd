@@ -1,0 +1,19 @@
+type: object
+required:
+  - memberId
+  - purchaseAmount
+  - grantedPoint
+properties:
+  memberId:
+    type: string
+    format: uuid
+    description: 会員ID
+  purchaseAmount:
+    type: integer
+    minimum: 0
+    maximum: 999999999
+    description: 購入金額
+  grantedPoint:
+    type: integer
+    minimum: 0
+    description: 付与ポイント

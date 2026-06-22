@@ -6,3 +6,4 @@ generate:
 output: internal/presentation/gen/server.gen.go
 import-mapping:
   ../../openapi.yaml: "-"
+  ../../../openapi.yaml: "-"
