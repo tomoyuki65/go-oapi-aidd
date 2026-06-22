@@ -1,8 +1,14 @@
 package schema
 
-import "time"
+import (
+	"time"
+
+	"github.com/uptrace/bun"
+)
 
 type Member struct {
+	bun.BaseModel `bun:"table:members,alias:m"`
+
 	ID        string    `bun:"id,pk,type:uuid"`
 	Name      string    `bun:"name,notnull"`
 	Rank      string    `bun:"rank,notnull"`

@@ -14,10 +14,11 @@ import (
 )
 
 func TestCalculatePointUsecase_Execute(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repository := mockRepository.NewMockMemberRepository(ctrl)
+
 	t.Run("会員取得成功時に正しい計算結果を返すこと", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-		repository := mockRepository.NewMockMemberRepository(ctrl)
 		rank, err := domain.NewRank("silver")
 		assert.NoError(t, err)
 		member, err := domain.NewMember("22222222-2222-2222-2222-222222222222", "佐藤", rank)
@@ -39,9 +40,6 @@ func TestCalculatePointUsecase_Execute(t *testing.T) {
 	})
 
 	t.Run("repositoryの会員未存在エラーをMEMBER_NOT_FOUND相当へ扱うこと", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-		repository := mockRepository.NewMockMemberRepository(ctrl)
 		repository.EXPECT().
 			FindByID(gomock.Any(), "99999999-9999-9999-9999-999999999999").
 			Return(nil, domain.ErrMemberNotFound)
@@ -56,9 +54,6 @@ func TestCalculatePointUsecase_Execute(t *testing.T) {
 	})
 
 	t.Run("repositoryの予期しないエラーを内部エラー相当へ扱うこと", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-		repository := mockRepository.NewMockMemberRepository(ctrl)
 		repository.EXPECT().
 			FindByID(gomock.Any(), "11111111-1111-1111-1111-111111111111").
 			Return(nil, assert.AnError)

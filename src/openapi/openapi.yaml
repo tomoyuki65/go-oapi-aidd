@@ -30,4 +30,4 @@ components:
     CalculateMemberPointResponse:
       $ref: "./components/schemas/core/member/calculate_point_response.yaml"
     MemberErrorResponse:
-      $ref: "./components/schemas/core/member/error_response.yaml"
+      $ref: "./components/schemas/common/error_response.yaml"
