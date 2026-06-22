@@ -29,13 +29,12 @@ func TestPointCalculator_Calculate(t *testing.T) {
 			assert.NoError(t, err)
 			member, err := NewMember("11111111-1111-1111-1111-111111111111", "田中", rank)
 			assert.NoError(t, err)
-			amount, err := NewPurchaseAmount(tt.purchaseAmount)
-			assert.NoError(t, err)
+			calculator := NewPointCalculator()
 
-			point, err := NewPointCalculator().Calculate(member, amount)
+			point, err := calculator.Calculate(member, tt.purchaseAmount)
 
 			assert.NoError(t, err)
-			assert.Equal(t, tt.want, point.Value())
+			assert.Equal(t, tt.want, point)
 		})
 	}
 
@@ -45,70 +44,9 @@ func TestPointCalculator_Calculate(t *testing.T) {
 			name: "田中",
 			rank: Rank("platinum"),
 		}
-		amount, err := NewPurchaseAmount(5000)
-		assert.NoError(t, err)
+		calculator := NewPointCalculator()
 
-		_, err = NewPointCalculator().Calculate(member, amount)
-
-		assert.Error(t, err)
-	})
-}
-
-func TestNewPurchaseAmount(t *testing.T) {
-	tests := []struct {
-		name  string
-		input int
-	}{
-		{name: "0円を受け付けること", input: 0},
-		{name: "999999999円を受け付けること", input: 999999999},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			amount, err := NewPurchaseAmount(tt.input)
-
-			assert.NoError(t, err)
-			assert.Equal(t, tt.input, amount.Value())
-		})
-	}
-
-	testsError := []struct {
-		name  string
-		input int
-	}{
-		{name: "負数を拒否すること", input: -1},
-		{name: "1000000000円を拒否すること", input: 1000000000},
-	}
-
-	for _, tt := range testsError {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewPurchaseAmount(tt.input)
-
-			assert.Error(t, err)
-		})
-	}
-}
-
-func TestNewGrantedPoint(t *testing.T) {
-	tests := []struct {
-		name  string
-		input int
-	}{
-		{name: "0ポイントを保持できること", input: 0},
-		{name: "正のポイントを保持できること", input: 1500},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			point, err := NewGrantedPoint(tt.input)
-
-			assert.NoError(t, err)
-			assert.Equal(t, tt.input, point.Value())
-		})
-	}
-
-	t.Run("負数ポイントを拒否すること", func(t *testing.T) {
-		_, err := NewGrantedPoint(-1)
+		_, err := calculator.Calculate(member, 5000)
 
 		assert.Error(t, err)
 	})

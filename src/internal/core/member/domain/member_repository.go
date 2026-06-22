@@ -3,9 +3,9 @@ package domain
 import (
 	"context"
 
-	"go-oapi-aidd/internal/shared/database"
+	"github.com/uptrace/bun"
 )
 
 type MemberRepository interface {
-	FindByID(ctx context.Context, tx database.Transaction, id string) (*Member, error)
+	FindByID(ctx context.Context, db bun.IDB, id string) (*Member, error)
 }

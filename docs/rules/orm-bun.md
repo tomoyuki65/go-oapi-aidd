@@ -25,6 +25,7 @@ Bun の利用場所は明示的に制限される。
 Bun は以下でのみ使用できる。
 
 - `internal/core/*/infrastructure/repository`
+- `internal/core/*/domain/*_repository.go` の repository interface 引数型（`bun.IDB` のみ）
 - `internal/supporting`
 - `internal/generic`
 - `internal/infrastructure/database`
@@ -35,6 +36,7 @@ Bun は以下でのみ使用できる。
 以下では Bun を使用してはならない。
 
 - `internal/core/*/domain`
+  - 例外：repository interface の引数型として `bun.IDB` を使う場合のみ許可
 - `internal/core/*/usecase`
 - `internal/core/*/infrastructure/external`
 - `internal/shared`
@@ -54,7 +56,21 @@ domain は業務ルールのみを扱う。
 - SQL の記述
 - Bun のタグ利用
 - Bun の型への依存
+  - 例外：repository interface の引数型として `bun.IDB` を使う場合のみ許可
 - DB アクセス
+
+許可事項：
+
+- repository interface では、通常の `*bun.DB` と `bun.Tx` の両方を受け取れるようにする目的で、引数型に `bun.IDB` を使ってよい。
+- `bun.IDB` は DB 実行主体を表す型としてのみ扱い、domain 内で query builder の生成、SQL記述、DBアクセスを行ってはならない。
+
+例：
+
+```go
+type MemberRepository interface {
+    FindByID(ctx context.Context, db bun.IDB, id string) (*Member, error)
+}
+```
 
 ### usecase
 
