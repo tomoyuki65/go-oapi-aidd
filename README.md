@@ -227,9 +227,22 @@ docker compose exec api go run cmd/migrate/main.go status
 ```
 docker compose exec api go run cmd/migrate/main.go migrate
 ```
+> ※もしテスト用DBに実行したい場合は、オプション「env ENV=testing」を追加し、次のようなコマンド「docker compose exec api env ENV=testing go run cmd/migrate/main.go migrate」を実行して下さい。
+  
 > ※マイグレーション実行後、一度に実行したSQLを一つのグループとして管理しています。
   
-### 6. コンテナの停止・削除
+
+### 6. マスタデータの登録
+  
+マスタデータの登録が必要な場合は以下のコマンドを実行
+  
+```
+docker compose exec api go run cmd/seed/main.go
+```
+  
+> ※追加したい場合は「internal/infrastructure/database/seed/local」にファイルを追加し、cmd/seed/main.goを修正して下さい。
+  
+### 7. コンテナの停止・削除
   
 ```
 docker compose down
@@ -334,7 +347,47 @@ make test
   
 <br>
   
-## 参考記事  
-[]()  
+## APIのエンドポイント
   
-作成中。。。
+Base URL: http://localhost:8080  
+  
+- GET /api/v1/healthcheck  
+  サービスの稼働状態を確認
+  
+- POST /api/v1/members/{{memberId}}/point-calculations  
+  会員ランクと購入金額から付与ポイントを計算  
+  
+<br>
+  
+## 本番環境用のDockerコンテナについて
+  
+本番環境用のコンテナをローカルでビルドして確認したい場合は、以下の手順で行なって下さい。
+  
+### 1. Dockerコンテナのビルド
+  
+以下のコマンドを実行し、Dockerコンテナをビルドします。  
+  
+```
+docker build --no-cache -t go-oapi-aidd:1.0.0 -f deploy/docker/prod/Dockerfile .
+```
+  
+> ※この例では本番環境用を想定し、タグにはバージョン「1.0.0」を付けてます。
+  
+### 2. Dockerコンテナの起動
+
+以下のコマンドを実行し、Dockerコンテナを起動します。
+  
+```
+docker run -d \
+-p 80:8080 \
+--env-file .env.production \
+go-oapi-aidd:1.0.0
+```
+  
+> ※Dockerコンテナを起動するタイミングで環境変数を渡します。実際に本番環境で環境変数を設定する際は各種インフラにあるシークレットサービスを使って下さい。
+  
+<br />
+  
+## 参考記事  
+[・Go言語（Golang）とAI駆動開発で実践するDDDベースのAPI開発｜oapi-codegen（chi）・Bun・Codex・ハーネスエンジニアリング](https://golang.tomoyuki65.com/golang-ai-driven-ddd-api-development)  
+  
