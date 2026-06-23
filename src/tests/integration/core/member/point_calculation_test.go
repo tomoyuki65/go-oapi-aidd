@@ -11,43 +11,45 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uptrace/bun"
 
 	"go-oapi-aidd/internal/di"
 	"go-oapi-aidd/internal/infrastructure/database"
-	"go-oapi-aidd/internal/infrastructure/database/seed"
-	"go-oapi-aidd/internal/infrastructure/database/seed/local"
+	"go-oapi-aidd/internal/infrastructure/database/schema"
 	"go-oapi-aidd/internal/infrastructure/logger"
 	"go-oapi-aidd/internal/presentation/router"
 )
+
+const tanakaMemberID = "11111111-1111-1111-1111-111111111111"
 
 func TestMemberPointCalculation(t *testing.T) {
 	ctx := context.Background()
 	db, err := database.NewBunDB()
 	require.NoError(t, err)
 
-	memberSeeder := local.NewMemberSeeder()
-	seeded := false
 	t.Cleanup(func() {
-		if seeded {
-			_ = seed.Cleanup(ctx, db, memberSeeder)
-		}
+		_ = cleanupMembers(ctx, db, tanakaMemberID)
 		db.Close()
 	})
-	require.NoError(t, seed.Run(ctx, db, memberSeeder))
-	seeded = true
+	require.NoError(t, cleanupMembers(ctx, db, tanakaMemberID))
+	require.NoError(t, insertMembers(ctx, db, schema.Member{
+		ID:   tanakaMemberID,
+		Name: "田中",
+		Rank: "bronze",
+	}))
 
 	container := di.NewContainer(db, logger.NewSlogLogger())
 	r := router.NewRouter(container)
 
-	t.Run("seed済み会員IDへのHTTPリクエストでポイント計算結果を返すこと", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+local.TanakaMemberID+"/point-calculations", bytes.NewBufferString(`{"purchaseAmount":5000}`))
+	t.Run("テスト用会員IDへのHTTPリクエストでポイント計算結果を返すこと", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+tanakaMemberID+"/point-calculations", bytes.NewBufferString(`{"purchaseAmount":5000}`))
 		req.Header.Set("Content-Type", "application/json")
 		res := httptest.NewRecorder()
 
 		r.ServeHTTP(res, req)
 
 		assert.Equal(t, http.StatusOK, res.Code)
-		assert.JSONEq(t, `{"memberId":"`+local.TanakaMemberID+`","purchaseAmount":5000,"grantedPoint":50}`, res.Body.String())
+		assert.JSONEq(t, `{"memberId":"`+tanakaMemberID+`","purchaseAmount":5000,"grantedPoint":50}`, res.Body.String())
 	})
 
 	t.Run("存在しない会員IDへのHTTPリクエストで404を返すこと", func(t *testing.T) {
@@ -73,7 +75,7 @@ func TestMemberPointCalculation(t *testing.T) {
 	})
 
 	t.Run("purchaseAmountが負数の場合に400を返すこと", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+local.TanakaMemberID+"/point-calculations", bytes.NewBufferString(`{"purchaseAmount":-1}`))
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+tanakaMemberID+"/point-calculations", bytes.NewBufferString(`{"purchaseAmount":-1}`))
 		req.Header.Set("Content-Type", "application/json")
 		res := httptest.NewRecorder()
 
@@ -84,7 +86,7 @@ func TestMemberPointCalculation(t *testing.T) {
 	})
 
 	t.Run("purchaseAmountが1000000000の場合に400を返すこと", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+local.TanakaMemberID+"/point-calculations", bytes.NewBufferString(`{"purchaseAmount":1000000000}`))
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+tanakaMemberID+"/point-calculations", bytes.NewBufferString(`{"purchaseAmount":1000000000}`))
 		req.Header.Set("Content-Type", "application/json")
 		res := httptest.NewRecorder()
 
@@ -95,7 +97,7 @@ func TestMemberPointCalculation(t *testing.T) {
 	})
 
 	t.Run("purchaseAmountが未指定の場合に400を返すこと", func(t *testing.T) {
-		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+local.TanakaMemberID+"/point-calculations", bytes.NewBufferString(`{}`))
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+tanakaMemberID+"/point-calculations", bytes.NewBufferString(`{}`))
 		req.Header.Set("Content-Type", "application/json")
 		res := httptest.NewRecorder()
 
@@ -104,4 +106,14 @@ func TestMemberPointCalculation(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, res.Code)
 		assert.JSONEq(t, `{"message":"Bad Request"}`, res.Body.String())
 	})
+}
+
+func insertMembers(ctx context.Context, db *bun.DB, members ...schema.Member) error {
+	_, err := db.NewInsert().Model(&members).On("CONFLICT (id) DO NOTHING").Exec(ctx)
+	return err
+}
+
+func cleanupMembers(ctx context.Context, db *bun.DB, ids ...string) error {
+	_, err := db.NewDelete().Model((*schema.Member)(nil)).Where("id IN (?)", bun.List(ids)).Exec(ctx)
+	return err
 }
