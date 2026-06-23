@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/uptrace/bun"
+
 	"go-oapi-aidd/internal/core/member/domain"
+	sl "go-oapi-aidd/internal/shared/logger"
 )
 
 var (
@@ -29,11 +32,19 @@ type CalculatePointUsecase interface {
 }
 
 type calculatePointUsecase struct {
+	db         *bun.DB
+	logger     sl.Logger
 	repository domain.MemberQueryRepository
 }
 
-func NewCalculatePointUsecase(repository domain.MemberQueryRepository) CalculatePointUsecase {
+func NewCalculatePointUsecase(
+	db *bun.DB,
+	logger sl.Logger,
+	repository domain.MemberQueryRepository,
+) CalculatePointUsecase {
 	return &calculatePointUsecase{
+		db:         db,
+		logger:     logger,
 		repository: repository,
 	}
 }
@@ -42,7 +53,7 @@ func (u *calculatePointUsecase) Execute(
 	ctx context.Context,
 	input CalculatePointInput,
 ) (CalculatePointOutput, error) {
-	member, err := u.repository.FindByID(ctx, nil, input.MemberID)
+	member, err := u.repository.FindByID(ctx, u.db, input.MemberID)
 	if err != nil {
 		if errors.Is(err, domain.ErrMemberNotFound) {
 			return CalculatePointOutput{}, ErrMemberNotFound

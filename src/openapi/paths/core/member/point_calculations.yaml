@@ -36,10 +36,9 @@ post:
       content:
         application/json:
           schema:
-            $ref: "../../../openapi.yaml#/components/schemas/ErrorAddCodeResponse"
+            $ref: "../../../openapi.yaml#/components/schemas/ErrorResponse"
           example:
-            code: BAD_REQUEST
-            message: invalid request
+            message: Bad Request
     "404":
       description: 会員が存在しない
       content:
@@ -54,7 +53,6 @@ post:
       content:
         application/json:
           schema:
-            $ref: "../../../openapi.yaml#/components/schemas/ErrorAddCodeResponse"
+            $ref: "../../../openapi.yaml#/components/schemas/ErrorResponse"
           example:
-            code: INTERNAL_SERVER_ERROR
-            message: internal server error
+            message: Internal Server Error

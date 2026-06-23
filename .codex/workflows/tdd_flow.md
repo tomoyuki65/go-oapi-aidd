@@ -54,7 +54,8 @@ make generate
 - handler → usecase / service は必ずmock化する
 - usecase → repository は必ずmock化する
 - 外部APIは必ずmock化する
-- DBはintegration test以外では使用しない
+- DBアクセスの検証はintegration testで行う
+- handler testでDIコンテナ生成にDBインスタンスが必要な場合でも、DBアクセスそのものは行わない
 
 ## 4. 実装ルール（GREEN）
 

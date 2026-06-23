@@ -33,6 +33,6 @@ func (h *HandlerV1) CalculateMemberPoint(
 	ctx context.Context,
 	request gen.CalculateMemberPointRequestObject,
 ) (gen.CalculateMemberPointResponseObject, error) {
-	memberHandler := coreMember.NewCalculatePointHandler(h.container.CalculatePointUsecase)
+	memberHandler := coreMember.NewCalculatePointHandler(h.container, h.container.CalculatePointUsecase)
 	return memberHandler.CalculateMemberPoint(ctx, request)
 }

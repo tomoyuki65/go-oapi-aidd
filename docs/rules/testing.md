@@ -36,10 +36,14 @@ TDD（Red → Green → Refactor）を前提とする。
 - repository
 - infrastructure
 - DBアクセスを含む処理
+- HTTPリクエストからDBアクセスまでを含むAPI結合
 
 特徴：
 - ローカルDockerのDBを使用する
 - 実DBでSQL・ORM（Bun）を検証する
+- 本番と同等のルーティング構成を通して実際のHTTPリクエストを送ってよい
+- OpenAPI validator / generated router / handler / usecase / repository / DB の結合を検証してよい
+- HTTPリクエストのバリデーション検証はintegration testで扱ってよい
 - 外部APIは使用しない（必ずモック化）
 
 ### e2e test
@@ -47,11 +51,10 @@ TDD（Red → Green → Refactor）を前提とする。
 API全体の動作確認。
 
 対象：
-- HTTP API全体
-- handler → usecase / service → repository / DBアクセス処理
+- 実行中のアプリケーションプロセスに対するHTTP API全体
 
 特徴：
-- 実際のHTTPリクエストを送る
+- 実行中のサーバーへ実際のHTTPリクエストを送る
 - DBはDocker環境を使用
 - 外部APIは必ずモック化
 
@@ -73,7 +76,7 @@ API全体の動作確認。
 
 - handlerテストではusecaseを必ずmock化する
 - supportingのhandlerテストではserviceを必ずmock化する
-- handlerはHTTPレイヤーのみに責務を限定する
+- handlerテストはhandlerメソッドを直接呼び出し、request object / response object の変換責務に限定する
 
 ## 4. テスト配置ルール
 
@@ -97,8 +100,12 @@ API全体の動作確認。
 handlerテストでは以下を必須とする：
 
 - usecase / serviceは必ずモック化する
-- HTTPリクエスト・レスポンスのみを検証する
+- handlerメソッドを直接呼び出して検証する
+- OpenAPI生成済みrequest objectからusecase / service入力への変換を検証する
+- usecase / serviceの結果からOpenAPI生成済みresponse objectへの変換を検証する
+- usecase / serviceのエラーからresponse objectへの変換を検証する
 - domainロジックは一切テストしない
+- OpenAPI validator、generated router、JSON decode、path parameter bindなどのHTTPリクエスト検証はintegration testで扱う
 
 例：
 
@@ -113,10 +120,10 @@ handlerテストでは以下を必須とする：
 - 業務フローの検証（repositoryはmock）
 
 ### handler
-- HTTP層の検証（usecase / serviceはmock）
+- request object / response object 変換の検証（usecase / serviceはmock）
 
 ### integration
-- DB含む結合検証（外部APIはmock）
+- HTTPリクエスト、OpenAPI validator、generated router、handler、usecase / service、repository、DBを含む結合検証（外部APIはmock）
 
 ## 7. 判断ルール
 

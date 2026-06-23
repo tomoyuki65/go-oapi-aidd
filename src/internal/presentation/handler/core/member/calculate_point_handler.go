@@ -7,16 +7,22 @@ import (
 	"github.com/google/uuid"
 
 	"go-oapi-aidd/internal/core/member/usecase"
+	"go-oapi-aidd/internal/di"
 	"go-oapi-aidd/internal/presentation/gen"
 )
 
 type CalculatePointHandler struct {
-	usecase usecase.CalculatePointUsecase
+	container *di.Container
+	usecase   usecase.CalculatePointUsecase
 }
 
-func NewCalculatePointHandler(usecase usecase.CalculatePointUsecase) *CalculatePointHandler {
+func NewCalculatePointHandler(
+	container *di.Container,
+	usecase usecase.CalculatePointUsecase,
+) *CalculatePointHandler {
 	return &CalculatePointHandler{
-		usecase: usecase,
+		container: container,
+		usecase:   usecase,
 	}
 }
 
@@ -42,16 +48,14 @@ func (h *CalculatePointHandler) CalculateMemberPoint(
 			}, nil
 		}
 		return gen.CalculateMemberPoint500JSONResponse{
-			Code:    "INTERNAL_SERVER_ERROR",
-			Message: "internal server error",
+			Message: "Internal Server Error",
 		}, nil
 	}
 
 	memberID, err := uuid.Parse(output.MemberID)
 	if err != nil {
 		return gen.CalculateMemberPoint500JSONResponse{
-			Code:    "INTERNAL_SERVER_ERROR",
-			Message: "internal server error",
+			Message: "Internal Server Error",
 		}, nil
 	}
 
@@ -64,7 +68,6 @@ func (h *CalculatePointHandler) CalculateMemberPoint(
 
 func badRequestResponse() gen.CalculateMemberPoint400JSONResponse {
 	return gen.CalculateMemberPoint400JSONResponse{
-		Code:    "BAD_REQUEST",
-		Message: "bad request",
+		Message: "Bad Request",
 	}
 }

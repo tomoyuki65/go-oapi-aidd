@@ -60,4 +60,48 @@ func TestMemberPointCalculation(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, res.Code)
 		assert.JSONEq(t, `{"code":"MEMBER_NOT_FOUND","message":"member not found"}`, res.Body.String())
 	})
+
+	t.Run("UUID形式ではないmemberIdへのHTTPリクエストで400を返すこと", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/not-a-uuid/point-calculations", bytes.NewBufferString(`{"purchaseAmount":5000}`))
+		req.Header.Set("Content-Type", "application/json")
+		res := httptest.NewRecorder()
+
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.JSONEq(t, `{"message":"Bad Request"}`, res.Body.String())
+	})
+
+	t.Run("purchaseAmountが負数の場合に400を返すこと", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+local.TanakaMemberID+"/point-calculations", bytes.NewBufferString(`{"purchaseAmount":-1}`))
+		req.Header.Set("Content-Type", "application/json")
+		res := httptest.NewRecorder()
+
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.JSONEq(t, `{"message":"Bad Request"}`, res.Body.String())
+	})
+
+	t.Run("purchaseAmountが1000000000の場合に400を返すこと", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+local.TanakaMemberID+"/point-calculations", bytes.NewBufferString(`{"purchaseAmount":1000000000}`))
+		req.Header.Set("Content-Type", "application/json")
+		res := httptest.NewRecorder()
+
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.JSONEq(t, `{"message":"Bad Request"}`, res.Body.String())
+	})
+
+	t.Run("purchaseAmountが未指定の場合に400を返すこと", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/members/"+local.TanakaMemberID+"/point-calculations", bytes.NewBufferString(`{}`))
+		req.Header.Set("Content-Type", "application/json")
+		res := httptest.NewRecorder()
+
+		r.ServeHTTP(res, req)
+
+		assert.Equal(t, http.StatusBadRequest, res.Code)
+		assert.JSONEq(t, `{"message":"Bad Request"}`, res.Body.String())
+	})
 }

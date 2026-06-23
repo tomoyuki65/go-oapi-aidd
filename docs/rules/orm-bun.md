@@ -26,6 +26,7 @@ Bun は以下でのみ使用できる。
 
 - `internal/core/*/infrastructure/repository`
 - `internal/core/*/domain/*_repository.go` の repository interface 引数型（`bun.IDB` のみ）
+- `internal/core/*/usecase` の DB 実行主体保持・repository 呼び出し引数（`bun.IDB` のみ）
 - `internal/supporting`
 - `internal/generic`
 - `internal/infrastructure/database`
@@ -38,6 +39,7 @@ Bun は以下でのみ使用できる。
 - `internal/core/*/domain`
   - 例外：repository interface の引数型として `bun.IDB` を使う場合のみ許可
 - `internal/core/*/usecase`
+  - 例外：DB 実行主体として `bun.IDB` を保持し、repository 呼び出し時に引数として渡す場合のみ許可
 - `internal/core/*/infrastructure/external`
 - `internal/shared`
 - `internal/presentation`
@@ -79,8 +81,29 @@ usecase は業務フローのみを扱う。
 禁止事項：
 
 - Bun の利用
+  - 例外：DB 実行主体として `bun.IDB` を保持し、repository 呼び出し時に引数として渡す場合のみ許可
 - SQL の記述
 - DB への直接アクセス
+- query builder の生成
+
+許可事項：
+
+- usecase がトランザクション境界を扱うために、通常の `*bun.DB` と `bun.Tx` の両方を受け取れる `bun.IDB` を保持してよい。
+- usecase は `bun.IDB` を repository に渡すだけに留め、SQL記述、query builder生成、DBアクセス処理を行ってはならない。
+
+例：
+
+```go
+type CalculatePointUsecase struct {
+    db         bun.IDB
+    repository domain.MemberQueryRepository
+}
+
+func (u *CalculatePointUsecase) Execute(ctx context.Context, input Input) (Output, error) {
+    member, err := u.repository.FindByID(ctx, u.db, input.MemberID)
+    // ...
+}
+```
 
 ### infrastructure/repository
 

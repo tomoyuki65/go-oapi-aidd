@@ -24,10 +24,10 @@ components:
     HealthcheckResponse:
       $ref: "./components/schemas/common/message.yaml"
     ErrorResponse:
-      $ref: "./components/schemas/common/message.yaml"
+      $ref: "./components/schemas/common/error_response.yaml"
     CalculateMemberPointRequest:
       $ref: "./components/schemas/core/member/calculate_point_request.yaml"
     CalculateMemberPointResponse:
       $ref: "./components/schemas/core/member/calculate_point_response.yaml"
     ErrorAddCodeResponse:
-      $ref: "./components/schemas/common/error_response.yaml"
+      $ref: "./components/schemas/common/error_add_code_response.yaml"

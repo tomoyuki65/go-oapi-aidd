@@ -36,6 +36,7 @@ type ErrorAddCodeResponse struct {
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
+	// Message エラーメッセージ
 	Message string `json:"message"`
 }
 

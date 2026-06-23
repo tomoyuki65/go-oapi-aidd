@@ -11,11 +11,13 @@ import (
 
 	"go-oapi-aidd/internal/core/member/domain"
 	mockRepository "go-oapi-aidd/internal/core/member/domain/mock_repository"
+	mockLogger "go-oapi-aidd/internal/shared/logger/mock_logger"
 )
 
 func TestCalculatePointUsecase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	logger := mockLogger.NewMockLogger(ctrl)
 	repository := mockRepository.NewMockMemberQueryRepository(ctrl)
 
 	t.Run("会員取得成功時に正しい計算結果を返すこと", func(t *testing.T) {
@@ -27,7 +29,7 @@ func TestCalculatePointUsecase_Execute(t *testing.T) {
 			FindByID(gomock.Any(), gomock.Nil(), "22222222-2222-2222-2222-222222222222").
 			Return(member, nil)
 
-		usecase := NewCalculatePointUsecase(repository)
+		usecase := NewCalculatePointUsecase(nil, logger, repository)
 		output, err := usecase.Execute(context.Background(), CalculatePointInput{
 			MemberID:       "22222222-2222-2222-2222-222222222222",
 			PurchaseAmount: 5000,
@@ -44,7 +46,7 @@ func TestCalculatePointUsecase_Execute(t *testing.T) {
 			FindByID(gomock.Any(), gomock.Nil(), "99999999-9999-9999-9999-999999999999").
 			Return(nil, domain.ErrMemberNotFound)
 
-		usecase := NewCalculatePointUsecase(repository)
+		usecase := NewCalculatePointUsecase(nil, logger, repository)
 		_, err := usecase.Execute(context.Background(), CalculatePointInput{
 			MemberID:       "99999999-9999-9999-9999-999999999999",
 			PurchaseAmount: 5000,
@@ -58,7 +60,7 @@ func TestCalculatePointUsecase_Execute(t *testing.T) {
 			FindByID(gomock.Any(), gomock.Nil(), "11111111-1111-1111-1111-111111111111").
 			Return(nil, assert.AnError)
 
-		usecase := NewCalculatePointUsecase(repository)
+		usecase := NewCalculatePointUsecase(nil, logger, repository)
 		_, err := usecase.Execute(context.Background(), CalculatePointInput{
 			MemberID:       "11111111-1111-1111-1111-111111111111",
 			PurchaseAmount: 5000,

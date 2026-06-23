@@ -12,17 +12,14 @@ import (
 
 // DIコンテナの定義
 type Container struct {
-	DB                    *bun.DB
 	Logger                sl.Logger
 	HealthcheckService    healthcheck.Service
-	MemberQueryRepository memberDomain.MemberQueryRepository
 	CalculatePointUsecase memberUsecase.CalculatePointUsecase
 }
 
 // 依存関係の定義
 type Dependencies struct {
 	MemberQueryRepository memberDomain.MemberQueryRepository
-	CalculatePointUsecase memberUsecase.CalculatePointUsecase
 }
 
 // 依存関係の上書き用関数のコンテナオプション定義
@@ -30,36 +27,23 @@ type ContainerOption func(*Dependencies)
 
 // デフォルトの依存関係の作成関数
 func NewDefaultDependencies() Dependencies {
-	return Dependencies{}
+	return Dependencies{
+		MemberQueryRepository: memberQuery.NewMemberRepository(),
+	}
 }
 
 // 依存関係からDIコンテナの作成関数
 func NewContainerFromDependencies(db *bun.DB, logger sl.Logger, deps Dependencies) *Container {
-	if deps.MemberQueryRepository == nil {
-		deps.MemberQueryRepository = memberQuery.NewMemberRepository(db)
-	}
-	if deps.CalculatePointUsecase == nil {
-		deps.CalculatePointUsecase = memberUsecase.NewCalculatePointUsecase(deps.MemberQueryRepository)
-	}
-
 	return &Container{
-		DB:                    db,
 		Logger:                logger,
 		HealthcheckService:    healthcheck.NewService(db, logger),
-		MemberQueryRepository: deps.MemberQueryRepository,
-		CalculatePointUsecase: deps.CalculatePointUsecase,
+		CalculatePointUsecase: memberUsecase.NewCalculatePointUsecase(db, logger, deps.MemberQueryRepository),
 	}
 }
 
 func WithMemberQueryRepository(repository memberDomain.MemberQueryRepository) ContainerOption {
 	return func(deps *Dependencies) {
 		deps.MemberQueryRepository = repository
-	}
-}
-
-func WithCalculatePointUsecase(usecase memberUsecase.CalculatePointUsecase) ContainerOption {
-	return func(deps *Dependencies) {
-		deps.CalculatePointUsecase = usecase
 	}
 }
 

@@ -12,24 +12,13 @@ import (
 	"go-oapi-aidd/internal/infrastructure/database/schema"
 )
 
-type MemberRepository struct {
-	db bun.IDB
-}
+type MemberRepository struct{}
 
-func NewMemberRepository(db ...bun.IDB) *MemberRepository {
-	var executor bun.IDB
-	if len(db) > 0 {
-		executor = db[0]
-	}
-	return &MemberRepository{
-		db: executor,
-	}
+func NewMemberRepository() *MemberRepository {
+	return &MemberRepository{}
 }
 
 func (r *MemberRepository) FindByID(ctx context.Context, db bun.IDB, id string) (*domain.Member, error) {
-	if db == nil {
-		db = r.db
-	}
 	if db == nil {
 		return nil, errors.New("db is nil")
 	}
