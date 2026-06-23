@@ -2,6 +2,7 @@ package router
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
 	"strconv"
@@ -70,12 +71,7 @@ func addOapiValidation(path string, r chi.Router) {
 		&nethttpMiddleware.Options{
 			SilenceServersWarning: true,
 			ErrorHandler: func(w http.ResponseWriter, message string, statusCode int) {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(statusCode)
-				_ = json.NewEncoder(w).Encode(map[string]any{
-					// "code":    statusCode,
-					"message": message,
-				})
+				writeErrorJSON(w, statusCode)
 			},
 		},
 	)
@@ -120,8 +116,63 @@ func NewRouter(container *di.Container) *chi.Mux {
 	apiV1 := "/api/v1"
 	r.Route(apiV1, func(r chi.Router) {
 		addOapiValidation(apiV1, r)
-		gen.HandlerFromMux(strictHandlerV1, r)
+		gen.HandlerWithOptions(strictHandlerV1, gen.ChiServerOptions{
+			BaseRouter: r,
+			ErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
+				writeErrorJSON(w, statusCodeFromHandlerError(err))
+			},
+		})
 	})
 
 	return r
+}
+
+func statusCodeFromHandlerError(err error) int {
+	var invalidParamFormatError *gen.InvalidParamFormatError
+	if errors.As(err, &invalidParamFormatError) {
+		return http.StatusBadRequest
+	}
+
+	var requiredParamError *gen.RequiredParamError
+	if errors.As(err, &requiredParamError) {
+		return http.StatusBadRequest
+	}
+
+	var requiredHeaderError *gen.RequiredHeaderError
+	if errors.As(err, &requiredHeaderError) {
+		return http.StatusBadRequest
+	}
+
+	var tooManyValuesForParamError *gen.TooManyValuesForParamError
+	if errors.As(err, &tooManyValuesForParamError) {
+		return http.StatusBadRequest
+	}
+
+	var unescapedCookieParamError *gen.UnescapedCookieParamError
+	if errors.As(err, &unescapedCookieParamError) {
+		return http.StatusBadRequest
+	}
+
+	var unmarshalingParamError *gen.UnmarshalingParamError
+	if errors.As(err, &unmarshalingParamError) {
+		return http.StatusBadRequest
+	}
+
+	return http.StatusInternalServerError
+}
+
+func writeErrorJSON(w http.ResponseWriter, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+
+	if statusCode == http.StatusInternalServerError {
+		_ = json.NewEncoder(w).Encode(gen.ErrorResponse{
+			Message: "Internal Server Error",
+		})
+		return
+	}
+
+	_ = json.NewEncoder(w).Encode(gen.ErrorResponse{
+		Message: "Bad Request",
+	})
 }

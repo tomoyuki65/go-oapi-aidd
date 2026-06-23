@@ -90,7 +90,7 @@ func NewBunDB() (*bun.DB, error) {
 	db := bun.NewDB(sqldb, pgdialect.New())
 
 	// デバッグログ設定（SQL表示）
-	if env != "production" {
+	if env == "local" {
 		db.AddQueryHook(bundebug.NewQueryHook(
 			bundebug.WithEnabled(true), // デバッグログ機能の有効化
 			bundebug.WithVerbose(true), // ログ詳細表示を有効化

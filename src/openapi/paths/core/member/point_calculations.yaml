@@ -1,0 +1,58 @@
+post:
+  operationId: calculateMemberPoint
+  tags:
+    - Members
+  description: 会員ランクと購入金額から付与ポイントを計算します。
+  parameters:
+    - name: memberId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: 会員ID
+      example: "11111111-1111-1111-1111-111111111111"
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../../../openapi.yaml#/components/schemas/CalculateMemberPointRequest"
+        example:
+          purchaseAmount: 5000
+  responses:
+    "200":
+      description: ポイント計算成功
+      content:
+        application/json:
+          schema:
+            $ref: "../../../openapi.yaml#/components/schemas/CalculateMemberPointResponse"
+          example:
+            memberId: "11111111-1111-1111-1111-111111111111"
+            purchaseAmount: 5000
+            grantedPoint: 50
+    "400":
+      description: リクエストが不正
+      content:
+        application/json:
+          schema:
+            $ref: "../../../openapi.yaml#/components/schemas/ErrorResponse"
+          example:
+            message: Bad Request
+    "404":
+      description: 会員が存在しない
+      content:
+        application/json:
+          schema:
+            $ref: "../../../openapi.yaml#/components/schemas/ErrorAddCodeResponse"
+          example:
+            code: MEMBER_NOT_FOUND
+            message: member not found
+    "500":
+      description: 予期せぬエラーが発生
+      content:
+        application/json:
+          schema:
+            $ref: "../../../openapi.yaml#/components/schemas/ErrorResponse"
+          example:
+            message: Internal Server Error

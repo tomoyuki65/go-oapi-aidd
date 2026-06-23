@@ -71,22 +71,14 @@ jobs:
         run: docker compose exec api sh -c 'until pg_isready -h db -U "${DB_USER}"; do sleep 1; done'
 
       - name: マイグレーションの初期化
-        run: docker compose exec api go run cmd/migrate/main.go init
+        run: docker compose exec api env ENV=testing go run cmd/migrate/main.go init
 
       - name: マイグレーションの実行
         run: |
           if ls src/internal/infrastructure/migrations/*.sql >/dev/null 2>&1; then
-            docker compose exec api go run cmd/migrate/main.go migrate
+            docker compose exec api env ENV=testing go run cmd/migrate/main.go migrate
           else
             echo "No migrations found. Skip."
-          fi
-
-      - name: マスタデータの登録
-        run: |
-          if ls src/internal/infrastructure/database/seed/local/*.go >/dev/null 2>&1; then
-            docker compose exec api go run cmd/seed/main.go
-          else
-            echo "No seeds found. Skip."
           fi
 
       - name: テストの実行

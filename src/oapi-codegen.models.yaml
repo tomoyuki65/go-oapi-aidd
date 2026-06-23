@@ -4,5 +4,6 @@ generate:
 output: internal/presentation/gen/models.gen.go
 import-mapping:
   ../../openapi.yaml: "-"
+  ../../../openapi.yaml: "-"
 output-options:
   skip-prune: true

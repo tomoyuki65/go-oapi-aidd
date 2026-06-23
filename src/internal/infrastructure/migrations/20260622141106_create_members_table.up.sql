@@ -1,0 +1,6 @@
+CREATE TABLE members (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    rank TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

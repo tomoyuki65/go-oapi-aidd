@@ -10,14 +10,24 @@ servers:
 tags:
   - name: Healthcheck
     description: ヘルスチェックAPI
+  - name: Members
+    description: 会員API
 
 paths:
   /healthcheck:
     $ref: "./paths/supporting/healthcheck.yaml"
+  /members/{memberId}/point-calculations:
+    $ref: "./paths/core/member/point_calculations.yaml"
 
 components:
   schemas:
     HealthcheckResponse:
       $ref: "./components/schemas/common/message.yaml"
     ErrorResponse:
-      $ref: "./components/schemas/common/message.yaml"
+      $ref: "./components/schemas/common/error_response.yaml"
+    CalculateMemberPointRequest:
+      $ref: "./components/schemas/core/member/calculate_point_request.yaml"
+    CalculateMemberPointResponse:
+      $ref: "./components/schemas/core/member/calculate_point_response.yaml"
+    ErrorAddCodeResponse:
+      $ref: "./components/schemas/common/error_add_code_response.yaml"

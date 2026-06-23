@@ -17,6 +17,8 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
+	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // ServerInterface represents all server handlers.
@@ -24,6 +26,9 @@ type ServerInterface interface {
 
 	// (GET /healthcheck)
 	Healthcheck(w http.ResponseWriter, r *http.Request)
+
+	// (POST /members/{memberId}/point-calculations)
+	CalculateMemberPoint(w http.ResponseWriter, r *http.Request, memberId openapi_types.UUID)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -32,6 +37,11 @@ type Unimplemented struct{}
 
 // (GET /healthcheck)
 func (_ Unimplemented) Healthcheck(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /members/{memberId}/point-calculations)
+func (_ Unimplemented) CalculateMemberPoint(w http.ResponseWriter, r *http.Request, memberId openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -49,6 +59,32 @@ func (siw *ServerInterfaceWrapper) Healthcheck(w http.ResponseWriter, r *http.Re
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Healthcheck(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CalculateMemberPoint operation middleware
+func (siw *ServerInterfaceWrapper) CalculateMemberPoint(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", chi.URLParam(r, "memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CalculateMemberPoint(w, r, memberId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -174,6 +210,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/healthcheck", wrapper.Healthcheck)
 	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/members/{memberId}/point-calculations", wrapper.CalculateMemberPoint)
+	})
 
 	return r
 }
@@ -213,11 +252,79 @@ func (response Healthcheck500JSONResponse) VisitHealthcheckResponse(w http.Respo
 	return err
 }
 
+type CalculateMemberPointRequestObject struct {
+	MemberId openapi_types.UUID `json:"memberId"`
+	Body     *CalculateMemberPointJSONRequestBody
+}
+
+type CalculateMemberPointResponseObject interface {
+	VisitCalculateMemberPointResponse(w http.ResponseWriter) error
+}
+
+type CalculateMemberPoint200JSONResponse CalculateMemberPointResponse
+
+func (response CalculateMemberPoint200JSONResponse) VisitCalculateMemberPointResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CalculateMemberPoint400JSONResponse ErrorResponse
+
+func (response CalculateMemberPoint400JSONResponse) VisitCalculateMemberPointResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CalculateMemberPoint404JSONResponse ErrorAddCodeResponse
+
+func (response CalculateMemberPoint404JSONResponse) VisitCalculateMemberPointResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CalculateMemberPoint500JSONResponse ErrorResponse
+
+func (response CalculateMemberPoint500JSONResponse) VisitCalculateMemberPointResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 
 	// (GET /healthcheck)
 	Healthcheck(ctx context.Context, request HealthcheckRequestObject) (HealthcheckResponseObject, error)
+
+	// (POST /members/{memberId}/point-calculations)
+	CalculateMemberPoint(ctx context.Context, request CalculateMemberPointRequestObject) (CalculateMemberPointResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -273,20 +380,61 @@ func (sh *strictHandler) Healthcheck(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CalculateMemberPoint operation middleware
+func (sh *strictHandler) CalculateMemberPoint(w http.ResponseWriter, r *http.Request, memberId openapi_types.UUID) {
+	var request CalculateMemberPointRequestObject
+
+	request.MemberId = memberId
+
+	var body CalculateMemberPointJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CalculateMemberPoint(ctx, request.(CalculateMemberPointRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CalculateMemberPoint")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CalculateMemberPointResponseObject); ok {
+		if err := validResponse.VisitCalculateMemberPointResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"tFJNaxNPGP8q4fn/j9vsxiKUuXkQDB4UPEoI4+ZpduruzDgzDUpYcHcQSrUgKmhRCHixGl9OCobilxmb",
-	"9WPIzNY21oMieNqX5+X3/F6mkIpCCo7caCBT0GmGBQ2vp4Xh8d9hKopC8GGBWtMx+iaphERlGIaRlYK5",
-	"IxEIaKMYH0NZRqDw1jZTOAJy/aRxEP1oFDe2MDVQ+k7GN0XYwUzua2OxJqhka5SNRp0LV/sQwQSVZoID",
-	"gV436SZQRiAkcioZEFjvJt11iEBSk4W74gxpbrI0w/Sm/x6j8Y8R6lQxadpFrv7o7KGzj1392VXvm4PD",
-	"I7vX7H5a3rvv6kfNy8W3N3uueuqqL67ad3drCJCK+vH+CAhcWgHxdLUUXLfCnEuSVlJukAdsKmXO0jAc",
-	"b2l/wBTwNi1kjj8pCVcue3KtA77yv8JNIPBffOpPfOxP/HvLgr5neNtnzs49aVu5+pWz1tUfljsPj3Zn",
-	"Hvn835/e5wYVp3nnGqoJqs5FpYT6x2y+LnaWL2aueu6qt64+cPa1N7V60OwvmiezEERDx9qHcNWvQVil",
-	"w52++Es47Du/p547O+9MehDBtsqBQGaMJHGci5TmmdCGbCQbSUwliyc9KAcnYNM/Eb2NNqcFnklTOSi/",
-	"BwAA//8=",
+	"5FZdT9xGFP0rq9s+LthpgpT6LWmoiipC1I+nClkT+7I7qT3jjscoEVqpthuVJFC1SaWQNhWiH+oWSvKA",
+	"WlGC+meGZcm/qGa8yxp2FxKy4qV+WK08nrnnzD3nzCyAx8OIM2QyBmcBYq+OITF/ewNu563r8TDkzEUh",
+	"uHCJ77se99EVGEecxagnRYJHKCTFzhK+eetj7AkaScoZOKCypsr/UPmuyrb0b34PqiDvRAgOxFJQVoNG",
+	"FUKMY1I7cXq+pvJcZS/MUtv9izSqIPCLhAr0wfmsQNNbePbwe37zFnpSFz2N83Cqo4d7NpwlHEMBjriu",
+	"QDfE8CYK1yOBlwREohtxyqSrl8VY9oOJEuHVSYxXQp4w2b9pB1u7rbu/vfz6u5dry7pl5DYNkxCcd7tP",
+	"FULKinf2IU7KJNZQ9DE6Vm0kxIbpoCYIk+jf0J/189p7sbK3/Y3Kf1LZryrfUvkinMxEy1UjmPIHLLb7",
+	"Q+vR2tQ1qMIcFyGR4ECSUH+Qm853ww8x9xWuHt2g/lbopSib40anVAZ6rMbHOInoGKG+X7lyYwqqMI8i",
+	"LpBfGLfHbU2RR8hIRMGBi+P2+EVdm8i6aYpVRxLIuldH73PTJJSDjPqXcekjlf2j0mft5m4rX27f/3v/",
+	"7gOVPWz/vHOwvqzSxyr9V6VP1JcZmJKC6Om6PfBBqYjej0IiBsA7tl3kIZNYbD+JooB6ZrJ1K9YAFgBv",
+	"kzAK8IhbYeZDTa4QpR55W+AcOPCW1ZOs1ZGsdXosmP09xjtfUfmGJp2nKvvdZNTz/cVvW/dXdeWJs0Of",
+	"YhIFI0HlYxTzKCqTOkNHweZYGA8gtbezuP90VaU/qvTPXgKnS+0nO+3vV41gJanFWqzlts3qAauQb2wt",
+	"dHXcsIztx7oxQDkrYozHcpgvTcktlT1XabPsLpU+UNm9/iBQ2cOD5mL72eMTNfZeN4imDbTCRVrpgoQo",
+	"UWhGJ+TEYZvgQucZG/DTfUBbERzjI6gCI6GeWTJ3z/NSJFju6ymB1JgtJmMsr3L/zusJ7HiWTdi2/Wai",
+	"Ov0EaxyNOE238aYeP3pUTNjlrH/V/pzvXgz3W1nJhYx7CXLp7AlC2TwJqF85bMN5ZIfK17Vts6bJxEWV",
+	"Lu1tL+9v/lJwufR6XIorMExPTl+d/Mi9PvOJ+/7Mp9evle6hXUdVGJeVOZ4wf3Q0++/og7KyyKt0qbW5",
+	"0nraNPmzrtKv/hfpX+RorJNfQzNQB4WoyjfNvX1D5RuVeW29RATgQF3KyLGsgHskqPNYOpfty7ZFImrN",
+	"XwAdc51CC69y6hZ3m07Ols+lRnVwqB+Z0KXSmG38FwAA//8=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
