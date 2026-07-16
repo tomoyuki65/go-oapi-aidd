@@ -81,7 +81,7 @@ func main() {
 
 		if err := srv.ListenAndServe(); err != nil &&
 			!errors.Is(err, http.ErrServerClosed) {
-				serverErrCh <- err
+			serverErrCh <- err
 		}
 		close(serverErrCh)
 	}()
