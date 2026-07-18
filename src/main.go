@@ -19,13 +19,26 @@ import (
 	"go-oapi-aidd/internal/presentation/router"
 )
 
+const (
+	httpShutdownTimeout   = 10 * time.Second
+	tracerShutdownTimeout = 5 * time.Second
+)
+
 func main() {
-	// コンテキスト設定
-	ctx := context.Background()
+	// 全体の共通コンテキスト設定
+	rootCtx := context.Background()
+
+	// SIGINT / SIGTERMを受け取るとキャンセルされるContext
+	signalCtx, stopSignal := signal.NotifyContext(
+		rootCtx,
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stopSignal()
 
 	// OpenTelemetryのトレース出力先設定
 	otelExporterType := os.Getenv("OTEL_EXPORTER_TYPE")
-	shutdownTracer := observability.InitTracer(ctx, otelExporterType)
+	shutdownTracer := observability.InitTracer(rootCtx, otelExporterType)
 
 	// DB取得
 	db, err := database.NewBunDB()
@@ -57,14 +70,6 @@ func main() {
 	}
 	startPort := fmt.Sprintf(":%s", port)
 
-	// SIGINT（Ctrl+C）またはSIGTERMを受け取るとキャンセルされるコンテキスト設定
-	ctx, stop := signal.NotifyContext(
-		ctx,
-		os.Interrupt,
-		syscall.SIGTERM,
-	)
-	defer stop()
-
 	// サーバー設定
 	srv := &http.Server{
 		Addr:              startPort,
@@ -80,7 +85,7 @@ func main() {
 
 	// ゴルーチンでサーバー起動
 	go func() {
-		logger.Info(false, ctx, "start server go-oapi-aidd")
+		logger.Info(false, rootCtx, "start server go-oapi-aidd")
 
 		if err := srv.ListenAndServe(); err != nil &&
 			!errors.Is(err, http.ErrServerClosed) {
@@ -91,29 +96,37 @@ func main() {
 
 	// 終了シグナルまたはサーバーエラーの待機
 	select {
-	case <-ctx.Done():
-		logger.Info(false, context.Background(), "shutdown signal received")
+	case <-signalCtx.Done():
+		logger.Info(false, rootCtx, "shutdown signal received")
+
+		// シグナル監視を解除（これ以降に再度Ctrl+Cを押すと、OSのデフォルト動作で終了）
+		stopSignal()
 
 	case err := <-serverErrCh:
-		if err != nil {
-			logger.Error(false, context.Background(), err.Error())
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error(false, rootCtx, err.Error())
 		}
 	}
 
-	// Shutdown用のコンテキスト設定
-	shutdownCtx, cancel := context.WithTimeout(
-		context.Background(),
-		10*time.Second,
-	)
-	defer cancel()
+	// // Shutdown用のコンテキスト設定
+	// shutdownCtx, cancel := context.WithTimeout(
+	// 	context.Background(),
+	// 	10*time.Second,
+	// )
+	// defer cancel()
 
-	logger.Info(false, shutdownCtx, "shutting down HTTP server")
+	httpShutdownCtx, cancelHTTPShutdown := context.WithTimeout(
+		rootCtx,
+		httpShutdownTimeout,
+	)
+
+	logger.Info(false, rootCtx, "shutting down HTTP server")
 
 	// 新規リクエストの受付を停止し、処理中のリクエストの完了待ち
-	if err := srv.Shutdown(shutdownCtx); err != nil {
+	if err := srv.Shutdown(httpShutdownCtx); err != nil {
 		logger.Error(
 			false,
-			context.Background(),
+			rootCtx,
 			fmt.Sprintf("failed to gracefully shutdown HTTP server: %v", err),
 		)
 
@@ -121,28 +134,38 @@ func main() {
 		if closeErr := srv.Close(); closeErr != nil {
 			logger.Error(
 				false,
-				context.Background(),
+				rootCtx,
 				fmt.Sprintf("failed to close HTTP server: %v", closeErr),
 			)
 		}
 	}
 
+	cancelHTTPShutdown()
+
 	// HTTPリクエスト終了後、依存リソースを閉じる
 	if err := db.Close(); err != nil {
 		logger.Error(
 			false,
-			context.Background(),
+			rootCtx,
 			fmt.Sprintf("failed to close database: %v", err),
 		)
 	}
 
-	if err := shutdownTracer(shutdownCtx); err != nil {
+	// HTTPサーバーの停止に時間を使い切っていてもTracerを停止できるよう、
+	// Tracer用には別のContextを作成する。
+	tracerShutdownCtx, cancelTracerShutdown := context.WithTimeout(
+		rootCtx,
+		tracerShutdownTimeout,
+	)
+	defer cancelTracerShutdown()
+
+	if err := shutdownTracer(tracerShutdownCtx); err != nil {
 		logger.Error(
 			false,
-			context.Background(),
+			rootCtx,
 			fmt.Sprintf("failed to shutdown tracer: %v", err),
 		)
 	}
 
-	logger.Info(false, context.Background(), "server shutdown completed")
+	logger.Info(false, rootCtx, "server shutdown completed")
 }
