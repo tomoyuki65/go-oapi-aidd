@@ -20,13 +20,8 @@ import (
 )
 
 func main() {
-	// SIGINT（Ctrl+C）またはSIGTERMを受け取るとキャンセルされるコンテキスト設定
-	ctx, stop := signal.NotifyContext(
-		context.Background(),
-		os.Interrupt,
-		syscall.SIGTERM,
-	)
-	defer stop()
+	// コンテキスト設定
+	ctx := context.Background()
 
 	// OpenTelemetryのトレース出力先設定
 	otelExporterType := os.Getenv("OTEL_EXPORTER_TYPE")
@@ -61,6 +56,14 @@ func main() {
 		port = "8080"
 	}
 	startPort := fmt.Sprintf(":%s", port)
+
+	// SIGINT（Ctrl+C）またはSIGTERMを受け取るとキャンセルされるコンテキスト設定
+	ctx, stop := signal.NotifyContext(
+		ctx,
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stop()
 
 	// サーバー設定
 	srv := &http.Server{
