@@ -86,12 +86,7 @@ func main() {
 	// ゴルーチンでサーバー起動
 	go func() {
 		logger.Info(false, ctx, "start server go-oapi-aidd")
-
-		if err := srv.ListenAndServe(); err != nil &&
-			!errors.Is(err, http.ErrServerClosed) {
-			serverErrCh <- err
-		}
-		close(serverErrCh)
+		serverErrCh <- srv.ListenAndServe()
 	}()
 
 	// 終了シグナルまたはサーバーエラーの待機
@@ -150,7 +145,6 @@ func main() {
 		ctx,
 		tracerShutdownTimeout,
 	)
-	defer cancelTracerShutdown()
 
 	if err := shutdownTracer(tracerShutdownCtx); err != nil {
 		logger.Error(
@@ -159,6 +153,8 @@ func main() {
 			fmt.Sprintf("failed to shutdown tracer: %v", err),
 		)
 	}
+
+	cancelTracerShutdown()
 
 	logger.Info(false, ctx, "server shutdown completed")
 }
