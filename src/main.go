@@ -108,13 +108,6 @@ func main() {
 		}
 	}
 
-	// // Shutdown用のコンテキスト設定
-	// shutdownCtx, cancel := context.WithTimeout(
-	// 	context.Background(),
-	// 	10*time.Second,
-	// )
-	// defer cancel()
-
 	httpShutdownCtx, cancelHTTPShutdown := context.WithTimeout(
 		rootCtx,
 		httpShutdownTimeout,
