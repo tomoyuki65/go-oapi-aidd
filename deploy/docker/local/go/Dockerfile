@@ -12,9 +12,9 @@ WORKDIR /go/src
 
 COPY ./src .
 
-# go.modがあれば依存関係をインストール
+# go.modがあれば依存関係をダウンロード
 RUN if [ -f ./go.mod ]; then \
-      go install; \
+      go mod download; \
     fi
 
 # 開発用のライブラリをインストール
