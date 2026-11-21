@@ -7,8 +7,8 @@ WORKDIR /go/src
 
 COPY ./src .
 
-# 依存関係をインストール
-RUN go install
+# 依存関係をダウンロード
+RUN go mod download
 
 # ビルド（GOOS：OS指定、GOARCH：CPUアーキテクチャ指定）
 RUN GOOS=linux GOARCH=amd64 go build -o main .
